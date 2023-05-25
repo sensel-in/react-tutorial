@@ -2,7 +2,7 @@ import data from './data.json';
 
 const cleanedData = data.map((row) => {
     const newRow = {
-        key: row['Trip-ID'],
+        key: row['Trip-No']+'-'+Math.floor(Math.random() * 1000000),
         id: row['Vehicle'],
         category: row['Vehicle-Category'],
         start: {
