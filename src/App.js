@@ -2,6 +2,7 @@ import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import TripTable from './trip-table';
+import ChartDashboard from './chart-dashboard';
 import TopNavBar from './top-navbar';
 
 import Tabs from 'react-bootstrap/Tabs';
@@ -26,7 +27,7 @@ function App() {
               <TripTable />
             </Tab>
             <Tab eventKey="graph" title="Graph">
-              TBD
+              <ChartDashboard />
             </Tab>
             <Tab eventKey="map" title="Map">
               TBD

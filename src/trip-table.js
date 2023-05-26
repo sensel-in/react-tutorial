@@ -97,11 +97,10 @@ function TripTable() {
     }
     let [dateFilterState, setDateFilterState] = useState(dateRange);
     const handleDateFilter = (evt, field) => {
-        console.log({dateFilterState});
         setDateFilterState((prevState) => {
             const newDate = new Date(evt.target.value);
-            console.log("Value", evt.target.value);
-            console.log(`Setting range[${field}] to ${newDate.toLocaleString('en-CA')}`);
+            //console.log("Value", evt.target.value);
+            //console.log(`Setting range[${field}] to ${newDate.toLocaleString('en-CA')}`);
             return { ...prevState, [field]: newDate };
         });
     };
