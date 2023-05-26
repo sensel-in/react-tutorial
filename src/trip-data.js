@@ -1,5 +1,5 @@
 import data from './data.json';
-
+let dateRange = [new Date(3000, 0, 1), new Date(1970, 0, 1)];
 const cleanedData = data.map((row) => {
     const newRow = {
         key: row['Trip-No']+'-'+Math.floor(Math.random() * 1000000),
@@ -21,6 +21,12 @@ const cleanedData = data.map((row) => {
         halttime: parseInterval(row['Halt-Hours']),
         detention: parseInterval(row['Dest-Detention-Time']),
     };
+    if (newRow.start.in < dateRange[0]) {
+        dateRange[0] = newRow.start.in;
+    }
+    if (newRow.end.out > dateRange[1]) {
+        dateRange[1] = newRow.end.out;
+    }
     return newRow;
 });
 function parseTime(localTimeString) {
@@ -51,3 +57,4 @@ function parseInterval(durationString) {
 }
 
 export default cleanedData;
+export { dateRange };

@@ -1,9 +1,26 @@
 import Table from 'react-bootstrap/Table';
-import tripData from './trip-data';
+import Form from 'react-bootstrap/Form';
+import { Button } from 'react-bootstrap';
+import tripData ,{dateRange} from './trip-data';
 import { SortUp, SortDown } from 'react-bootstrap-icons';
 import { useState } from 'react';
-function fmtTime(t) {
-    return t.toLocaleTimeString('en-US', { hour12: false });
+function fmtTime(base, t) {
+    let ret = t.toLocaleTimeString('en-US', { hour12: false });
+  // The number of milliseconds in all UTC days (no DST)
+  const oneDay = 1000 * 60 * 60 * 24 - 1;
+
+  // A day in UTC always lasts 24 hours (unlike in other time formats)
+  const tD = Date.UTC(t.getFullYear(), t.getMonth(), t.getDate());
+  const bD = Date.UTC(base.getFullYear(), base.getMonth(), base.getDate());
+
+  // so it's safe to divide by 24 hours
+  const n = Math.floor((tD - bD) / oneDay);    
+  if (n > 0)
+        ret += ` +${n}d`;
+  return ret;
+}
+function fmtDate(t) {
+    return t.toLocaleDateString('en-IN', { hour12: false });
 }
 function fmtInterval(t) {
     return `${Math.floor(t/3600)}:${Math.round((t%3600)/60).toString().padStart(2,'0')}`;
@@ -12,7 +29,8 @@ function fmtDistance(d) {
     return d.toFixed(2);
 }
 function TripTable() {
-    const baseState = {
+    //console.log(dateRange);
+    const baseSortState = {
         id: 0,
         category: 0,
         start: {
@@ -31,15 +49,15 @@ function TripTable() {
         halttime: 0,
         detention: 0,
     };
-    let [sortState, setSortState] = useState(baseState);
+    let [sortState, setSortState] = useState(baseSortState);
     const handleSort = (field) => {
         const flds = field.split('.');
         setSortState((prevState) => {
             if (flds.length === 1)
-                return { ...baseState, [field]: prevState[field] ? -prevState[field] : 1 };
+                return { ...baseSortState, [field]: prevState[field] ? -prevState[field] : 1 };
             else {
                 const [parent, child] = flds;
-                return { ...baseState, [parent]: { ...baseState[parent], [child]: prevState[parent][child] ? -prevState[parent][child] : 1 } };
+                return { ...baseSortState, [parent]: { ...baseSortState[parent], [child]: prevState[parent][child] ? -prevState[parent][child] : 1 } };
             }
         });
     };
@@ -52,7 +70,7 @@ function TripTable() {
         return '??'
     };
     const sortBy = (sortState, data) => {
-        const fsf = d => Object.keys(d).find((key) => typeof(d[key]) == 'number' && sortState[key] !== 0) 
+        const fsf = d => Object.keys(d).find((key) => typeof(d[key]) == 'number' && d[key] !== 0) 
         const field = fsf(sortState);
         if (field) {
             const dir = sortState[field];
@@ -70,17 +88,35 @@ function TripTable() {
         if (f1 && f2) {
             const dir = sortState[f1][f2];
             const scmp = (typeof(data[0][f1][f2]) == 'string');
+            //console.log("Sorting by", {sortState, f1, f2, dir, scmp});
             return data.sort((a, b) => {
                 return dir*(scmp?a[f1][f2].localeCompare(b[f1][f2]):(a[f1][f2] - b[f1][f2]));
             });
         }
         return data
     }
+    let [dateFilterState, setDateFilterState] = useState(dateRange);
+    const handleDateFilter = (evt, field) => {
+        console.log({dateFilterState});
+        setDateFilterState((prevState) => {
+            const newDate = new Date(evt.target.value);
+            console.log("Value", evt.target.value);
+            console.log(`Setting range[${field}] to ${newDate.toLocaleString('en-CA')}`);
+            return { ...prevState, [field]: newDate };
+        });
+    };
     //console.log(tripData);
     return (<Table striped bordered hover>
       <thead>
         <tr>
+            <td>Date Filter</td><td colSpan={6}>From: <Form.Control type="date" value={dateFilterState[0].toLocaleDateString('en-CA')} onChange={e => handleDateFilter(e, 0)}></Form.Control></td>
+                            {/*<td><Form.Control type="time" value={dateFilterState[0].toLocaleTimeString('en-CA', {hour12:false})} onChange={e => handleDateFilter(e, 0)}></Form.Control></td>*/}
+                                <td colSpan={6}>To: <Form.Control type="date"  value={dateFilterState[1].toLocaleDateString('en-CA')} onChange={e => handleDateFilter(e, 1)}></Form.Control></td>
+                                <td><Button onClick={() => setDateFilterState(dateRange)}>Reset</Button></td>
+        </tr>
+        <tr>
         <th colSpan={2} className="text-center">Vehicle</th>
+        <th rowSpan={2} className="text-center">Date</th>
         <th colSpan={3} className="text-center">Trip Start</th>
         <th colSpan={3} className="text-center">Trip End</th>
 
@@ -107,17 +143,22 @@ function TripTable() {
         </tr>
       </thead>
       <tbody>
-        {sortBy(sortState, tripData).map(row => (<tr key={row.key}>
+        {sortBy(sortState, tripData)
+            .filter(row => {
+                return (row.start.in >= dateFilterState[0] && row.end.out <= dateFilterState[1])
+            })
+            .map(row => (<tr key={row.key}>
             <td>{row.id}</td>
             <td>{row.category}</td>
 
+            <td>{fmtDate(row.start.in)}</td>
             <td>{row.start.location}</td>
-            <td>{fmtTime(row.start.in)}</td>
-            <td>{fmtTime(row.start.out)}</td>
+            <td>{fmtTime(row.start.in, row.start.in)}</td>
+            <td>{fmtTime(row.start.in, row.start.out)}</td>
 
             <td>{row.end.location}</td>
-            <td>{fmtTime(row.end.in)}</td>
-            <td>{fmtTime(row.end.out)}</td>
+            <td>{fmtTime(row.start.in, row.end.in)}</td>
+            <td>{fmtTime(row.start.in, row.end.out)}</td>
 
             <td className='text-end'>{fmtDistance(row.distance)}</td>
 

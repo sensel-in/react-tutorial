@@ -4,6 +4,9 @@ import Col from 'react-bootstrap/Col';
 import TripTable from './trip-table';
 import TopNavBar from './top-navbar';
 
+import Tabs from 'react-bootstrap/Tabs';
+import Tab from 'react-bootstrap/Tab';
+
 import logo from './logo.svg';
 import './App.css';
 
@@ -18,7 +21,17 @@ function App() {
       <Row><TopNavBar /></Row>
       <Row className="justify-content-center">
         <Col lg={8} >
-          <TripTable />
+          <Tabs defaultActiveKey="table">
+            <Tab eventKey="table" title="Table">
+              <TripTable />
+            </Tab>
+            <Tab eventKey="graph" title="Graph">
+              TBD
+            </Tab>
+            <Tab eventKey="map" title="Map">
+              TBD
+            </Tab>
+          </Tabs>
         </Col>
       </Row>
     </Container>
